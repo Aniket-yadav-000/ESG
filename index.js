@@ -1,3 +1,4 @@
+// server.js
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
@@ -16,14 +17,14 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ------------------- CORS CONFIG -------------------
-// ✅ Enable cross-origin cookies for frontend (Netlify + localhost)
+// ✅ Allow cookies between Render (backend) and Netlify (frontend)
 app.use(
   cors({
     origin: [
-      "http://localhost:3000", // Local development
-      "https://inquisitive-fenglisu-810df6.netlify.app", // Deployed frontend
+      "http://localhost:3000", // local development
+      "https://inquisitive-fenglisu-810df6.netlify.app", // deployed frontend
     ],
-    credentials: true, // Allow cookies
+    credentials: true, // ✅ allow cookies
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
@@ -46,7 +47,7 @@ app.use("/api/spledges", SPledgeRoutes);
 app.use("/api/gpledges", GPledgeRoutes);
 app.use("/api/rankings", RankingRoutes);
 
-// ------------------- GLOBAL ERROR HANDLER -------------------
+// ------------------- ERROR HANDLER -------------------
 app.use((err, req, res, next) => {
   console.error("⚠️ Global Error Handler:", err);
   res
@@ -66,18 +67,7 @@ mongoose
     // ------------------- START SERVER -------------------
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
-      console.log(
-        "🔗 Backend URL:",
-        process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`
-      );
+      console.log("🔗 Backend URL:", process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`);
     });
   })
-  .catch((err) =>
-    console.error("❌ MongoDB connection error:", err.message)
-  );
-
-// ------------------- PRODUCTION HTTPS COOKIE NOTE -------------------
-// In production, ensure the frontend uses HTTPS and cookies have:
-// secure: true
-// sameSite: "None"
-// This allows cross-domain authentication with Netlify frontend.
+  .catch((err) => console.error("❌ MongoDB connection error:", err.message));
