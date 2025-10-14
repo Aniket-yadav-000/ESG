@@ -10,9 +10,10 @@ const router = express.Router();
 const JWT_EXPIRES = 7 * 24 * 60 * 60 * 1000; // 7 days
 const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: true, // ✅ force HTTPS for Render + Netlify
-  sameSite: "None", // ✅ required for cross-origin cookies
+  secure: process.env.NODE_ENV === "production", // ✅ only HTTPS in production
+  sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax", // ✅ cross-domain for Netlify + Render
   maxAge: JWT_EXPIRES,
+  path: "/", // ensure cookie works on all routes
 };
 
 // -------------------- REGISTER --------------------
@@ -21,9 +22,10 @@ router.post("/register", async (req, res) => {
     const { email, password, name } = req.body;
 
     if (!email || !password) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Email and password required" });
+      return res.status(400).json({
+        success: false,
+        message: "Email and password required",
+      });
     }
 
     const exists = await User.findOne({ email });
@@ -59,7 +61,7 @@ router.post("/register", async (req, res) => {
         },
       });
   } catch (err) {
-    console.error("Register error:", err);
+    console.error("❌ Register error:", err);
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
@@ -108,7 +110,7 @@ router.post("/login", async (req, res) => {
         },
       });
   } catch (err) {
-    console.error("Login error:", err);
+    console.error("❌ Login error:", err);
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
@@ -125,7 +127,7 @@ router.get("/me", auth, async (req, res) => {
 
     res.json({ success: true, user });
   } catch (err) {
-    console.error("Fetch user error:", err);
+    console.error("❌ Fetch user error:", err);
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
@@ -136,12 +138,13 @@ router.post("/logout", (req, res) => {
     res
       .clearCookie("token", {
         httpOnly: true,
-        secure: true,
-        sameSite: "None",
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+        path: "/",
       })
       .json({ success: true, message: "Logged out successfully" });
   } catch (err) {
-    console.error("Logout error:", err);
+    console.error("❌ Logout error:", err);
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
