@@ -1,3 +1,4 @@
+// server.js
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
@@ -16,22 +17,22 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ------------------- CORS CONFIG -------------------
-// Allow frontend to access backend with cookies or JWT
+// ✅ Allow cookies between Render (backend) and Netlify (frontend)
 app.use(
   cors({
     origin: [
-      "http://localhost:3000", // local dev
+      "http://localhost:3000", // local development
       "https://inquisitive-fenglisu-810df6.netlify.app", // deployed frontend
     ],
-    credentials: true, // allow cookies
+    credentials: true, // ✅ allow cookies
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"], // allow JWT header
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
 // ------------------- MIDDLEWARE -------------------
-app.use(express.json()); // parse JSON
-app.use(cookieParser()); // parse cookies
+app.use(express.json());
+app.use(cookieParser());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ------------------- TEST ROUTE -------------------
@@ -66,10 +67,7 @@ mongoose
     // ------------------- START SERVER -------------------
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
-      console.log(
-        "🔗 Backend URL:",
-        process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`
-      );
+      console.log("🔗 Backend URL:", process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`);
     });
   })
   .catch((err) => console.error("❌ MongoDB connection error:", err.message));
