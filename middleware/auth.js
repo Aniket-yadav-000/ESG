@@ -1,12 +1,13 @@
 const jwt = require("jsonwebtoken");
 
 /**
- * ✅ Middleware: Authenticate any logged-in user
+ * Middleware: Authenticate any logged-in user
  */
 module.exports = function (req, res, next) {
   try {
-    // Check if cookie exists
-    const token = req.cookies?.token;
+    // Check for token in cookies OR Authorization header
+    const token =
+      req.cookies?.token || req.headers.authorization?.split(" ")[1];
 
     if (!token) {
       return res
@@ -14,10 +15,10 @@ module.exports = function (req, res, next) {
         .json({ success: false, message: "Not authenticated" });
     }
 
-    // Verify token using secret key
+    // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Attach user data to request
+    // Attach user info to request
     req.user = decoded;
     next();
   } catch (err) {
@@ -29,11 +30,12 @@ module.exports = function (req, res, next) {
 };
 
 /**
- * ✅ Middleware: Restrict access to admin routes only
+ * Middleware: Restrict access to admin routes only
  */
 module.exports.adminOnly = function (req, res, next) {
   try {
-    const token = req.cookies?.token;
+    const token =
+      req.cookies?.token || req.headers.authorization?.split(" ")[1];
 
     if (!token) {
       return res
