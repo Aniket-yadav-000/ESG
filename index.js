@@ -1,4 +1,3 @@
-// server.js
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
@@ -17,14 +16,14 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ------------------- CORS CONFIG -------------------
-// ✅ Allow cookies between Render (backend) and Netlify (frontend)
+// ✅ Enable cross-origin cookies for frontend (Netlify + localhost)
 app.use(
   cors({
     origin: [
-      "http://localhost:3000", // local development
-      "https://inquisitive-fenglisu-810df6.netlify.app", // deployed frontend
+      "http://localhost:3000", // Local development
+      "https://inquisitive-fenglisu-810df6.netlify.app", // Deployed frontend
     ],
-    credentials: true, // ✅ allow cookies
+    credentials: true, // Allow cookies
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
@@ -47,7 +46,7 @@ app.use("/api/spledges", SPledgeRoutes);
 app.use("/api/gpledges", GPledgeRoutes);
 app.use("/api/rankings", RankingRoutes);
 
-// ------------------- ERROR HANDLER -------------------
+// ------------------- GLOBAL ERROR HANDLER -------------------
 app.use((err, req, res, next) => {
   console.error("⚠️ Global Error Handler:", err);
   res
@@ -67,7 +66,18 @@ mongoose
     // ------------------- START SERVER -------------------
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
-      console.log("🔗 Backend URL:", process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`);
+      console.log(
+        "🔗 Backend URL:",
+        process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`
+      );
     });
   })
-  .catch((err) => console.error("❌ MongoDB connection error:", err.message));
+  .catch((err) =>
+    console.error("❌ MongoDB connection error:", err.message)
+  );
+
+// ------------------- PRODUCTION HTTPS COOKIE NOTE -------------------
+// In production, ensure the frontend uses HTTPS and cookies have:
+// secure: true
+// sameSite: "None"
+// This allows cross-domain authentication with Netlify frontend.
