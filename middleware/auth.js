@@ -1,18 +1,24 @@
 const jwt = require("jsonwebtoken");
 
-// ✅ General user authentication
+/**
+ * ✅ Middleware: Authenticate any logged-in user
+ */
 module.exports = function (req, res, next) {
-  const token = req.cookies?.token;
-
-  if (!token) {
-    return res
-      .status(401)
-      .json({ success: false, message: "Not authenticated" });
-  }
-
   try {
+    // Check if cookie exists
+    const token = req.cookies?.token;
+
+    if (!token) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Not authenticated" });
+    }
+
+    // Verify token using secret key
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // attach { id, email, role }
+
+    // Attach user data to request
+    req.user = decoded;
     next();
   } catch (err) {
     console.error("JWT verification failed:", err.message);
@@ -22,23 +28,28 @@ module.exports = function (req, res, next) {
   }
 };
 
-// ✅ Admin-only route protection
+/**
+ * ✅ Middleware: Restrict access to admin routes only
+ */
 module.exports.adminOnly = function (req, res, next) {
-  const token = req.cookies?.token;
-
-  if (!token) {
-    return res
-      .status(401)
-      .json({ success: false, message: "Not authenticated" });
-  }
-
   try {
+    const token = req.cookies?.token;
+
+    if (!token) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Not authenticated" });
+    }
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Check admin role
     if (decoded.role !== "admin") {
       return res
         .status(403)
         .json({ success: false, message: "Admin access denied" });
     }
+
     req.user = decoded;
     next();
   } catch (err) {
