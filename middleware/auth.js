@@ -3,67 +3,59 @@ const jwt = require("jsonwebtoken");
 /**
  * ✅ Middleware: Authenticate any logged-in user
  */
-const auth = (req, res, next) => {
+module.exports = function (req, res, next) {
   try {
-    // Get token from cookies
+    // Check if cookie exists
     const token = req.cookies?.token;
 
     if (!token) {
-      return res.status(401).json({
-        success: false,
-        message: "Not authenticated. Please login to continue.",
-      });
+      return res
+        .status(401)
+        .json({ success: false, message: "Not authenticated" });
     }
 
-    // Verify token
+    // Verify token using secret key
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Attach user info to request
+    // Attach user data to request
     req.user = decoded;
     next();
   } catch (err) {
     console.error("JWT verification failed:", err.message);
-    return res.status(401).json({
-      success: false,
-      message: "Invalid or expired token. Please login again.",
-    });
+    return res
+      .status(401)
+      .json({ success: false, message: "Invalid or expired token" });
   }
 };
 
 /**
  * ✅ Middleware: Restrict access to admin routes only
  */
-const adminOnly = (req, res, next) => {
+module.exports.adminOnly = function (req, res, next) {
   try {
     const token = req.cookies?.token;
 
     if (!token) {
-      return res.status(401).json({
-        success: false,
-        message: "Not authenticated. Admin access denied.",
-      });
+      return res
+        .status(401)
+        .json({ success: false, message: "Not authenticated" });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Check if user is admin
+    // Check admin role
     if (decoded.role !== "admin") {
-      return res.status(403).json({
-        success: false,
-        message: "Admin access denied. You do not have permission.",
-      });
+      return res
+        .status(403)
+        .json({ success: false, message: "Admin access denied" });
     }
 
     req.user = decoded;
     next();
   } catch (err) {
     console.error("Admin check failed:", err.message);
-    return res.status(401).json({
-      success: false,
-      message: "Invalid or expired token. Admin access denied.",
-    });
+    return res
+      .status(401)
+      .json({ success: false, message: "Invalid or expired token" });
   }
 };
-
-module.exports = auth;
-module.exports.adminOnly = adminOnly;
